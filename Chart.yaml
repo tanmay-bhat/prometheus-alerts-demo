@@ -1,0 +1,5 @@
+apiVersion: v2
+name: alert-rules
+description: Helm chart for Prometheus alerts
+type: application
+version: 0.1.0

@@ -1,0 +1,58 @@
+{{- /*
+Define a PrometheusRule object for each rule file.
+*/ -}}
+{{- $ruleValues := .Values.ruleValues }}
+
+{{- /*
+Iterate over each rule file and create a PrometheusRule object with appropriate annotations and labels.
+*/ -}}
+
+{{- range $ruleFolderPath := .Values.rulePaths }}
+  {{- range $path, $_ := trimSuffix "/" $ruleFolderPath | printf "%s/**/**.yaml" | $.Files.Glob  }}
+    {{- $team := dir $path | base }}
+    {{- $ruleName := base $path | trimSuffix ".yaml" | printf "%s-%s" $team | kebabcase}}
+    {{- if and (get $.Values.createRules $team) (base $path | ne ".defaults.yaml") }}
+      {{- $template := $.Files.Get $path | fromYaml }}
+      {{- if not $template.rules }}
+        {{- cat ".rules is not defined in" $path | fail }}
+      {{- end }}
+      {{- $defaults := dir $path | printf "%s/.defaults.yaml" | $.Files.Get | fromYaml }}
+      {{- $defaultAnnotations := get $defaults "annotations" | default (dict) }}
+      {{- $defaultLabels := get $defaults "labels" | default (dict) }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ kebabcase $ruleName | quote }}
+spec:
+  groups:
+  - name: {{ camelcase $team | quote }}
+    rules:
+      {{- range $_, $rule := $template.rules }}
+      {{- $rule = mergeOverwrite (dict "annotations" (dict) "labels" (dict)) $rule }}
+      {{- $tplDict := dict "Values" $ruleValues "Template" $.Template "Rule" $rule }}
+      {{- $_ := tpl $rule.name $tplDict | set $rule "name" }}
+    - alert: {{ quote $rule.name }}
+      annotations:
+        {{- $annotations := merge $rule.annotations $defaultAnnotations }}
+        {{- range $key, $rawValue := $annotations }}
+          {{- $templatedValue := tpl $rawValue $tplDict }}
+          {{- with $templatedValue }}
+            {{- dict $key $templatedValue | toYaml | nindent 8 }}
+          {{- end }}
+        {{- end }}
+      expr: |-
+        {{- tpl $rule.expr $tplDict | nindent 8 }}
+      for: {{ $rule.for | default $ruleValues.defaults.for }}
+      labels:
+        {{- $labels := merge $rule.labels $defaultLabels }}
+        {{- range $key, $rawValue := $labels }}
+          {{- $templatedValue := tpl $rawValue $tplDict }}
+          {{- with $templatedValue }}
+            {{- dict $key $templatedValue | toYaml | nindent 8 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

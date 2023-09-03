@@ -1,0 +1,18 @@
+# Path to directory with rules files of teams
+rulePaths:
+  - alert-rules
+
+# Enable / disable rules creation for teams
+createRules:
+  Team-A: true
+  Team-B: false
+
+# ruleValues that will be referred as .Values.ruleValues in rule definitions
+ruleValues:
+  defaults:
+    for: 60s
+  severity:
+    critical: critical
+    high: high
+    warning: warning
+    info: info

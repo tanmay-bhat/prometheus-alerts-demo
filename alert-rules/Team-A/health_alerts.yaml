@@ -1,0 +1,20 @@
+
+rules:
+  - name: KubeContainerWaiting
+    expr: sum by (namespace, pod, container, cluster) (kube_pod_container_status_waiting_reason{job="kube-state-metrics",
+        namespace=~"team-a"}) > 0
+    for: 1h
+    labels:
+      severity: '{{ .Values.severity.critical }}'
+    annotations:
+      description: 'Pod {{ "{{$labels.namespace}}" }}/{{ "{{$labels.pod}}" }} has been in waiting state for more than 1 hour.'
+      summary: 'Pod container waiting longer than 1 hour.'
+  - name: KubeContainerWaiting
+    expr: sum by (namespace, pod, container, cluster) (kube_pod_container_status_waiting_reason{job="kube-state-metrics",
+        namespace=~".*"}) > 0
+    for: 1h
+    labels:
+      severity: '{{ .Values.severity.critical }}'
+    annotations:
+      description: 'Pod {{ "{{$labels.namespace}}" }}/{{ "{{$labels.pod}}" }} has been in waiting state for more than 1 hour.'
+      summary: 'Pod container waiting longer than 1 hour.'

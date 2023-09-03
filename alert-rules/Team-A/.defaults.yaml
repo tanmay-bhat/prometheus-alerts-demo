@@ -1,0 +1,4 @@
+annotations:
+  summary: '{{ .Rule.name }}'
+labels:
+  team: Team-A
