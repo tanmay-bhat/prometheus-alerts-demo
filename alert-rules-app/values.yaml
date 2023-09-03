@@ -5,7 +5,7 @@ rulePaths:
 # Enable / disable rules creation for teams
 createRules:
   Team-A: true
-  Team-B: false
+  Team-B: true
 
 # ruleValues that will be referred as .Values.ruleValues in rule definitions
 ruleValues:
