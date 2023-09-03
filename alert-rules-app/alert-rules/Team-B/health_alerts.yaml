@@ -1,4 +1,3 @@
-
 rules:
   - name: KubeJobFailed
     expr: kube_job_failed{job="kube-state-metrics", namespace=~".*"}  > 0
@@ -6,5 +5,5 @@ rules:
     labels:
       severity: '{{ .Values.severity.warning }}'
     annotations:
-      description: Job {{ $labels.namespace }}/{{ "{{$labels.job_name}}" }} failed to complete. Removing failed job after investigation should clear this alert.
+      description: Job {{ "{{$labels.namespace}}" }}/{{ "{{$labels.job_name}}" }} failed to complete. Removing failed job after investigation should clear this alert.
       summary: 'Job failed to complete.'

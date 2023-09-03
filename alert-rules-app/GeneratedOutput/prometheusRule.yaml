@@ -30,3 +30,24 @@ spec:
       labels:
         severity: critical
         team: Team-A
+---
+# Source: alert-rules/templates/prometheusRule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "team-b-health-alerts"
+spec:
+  groups:
+  - name: "TeamB"
+    rules:
+    - alert: "KubeJobFailed"
+      annotations:
+        description: Job {{$labels.namespace}}/{{$labels.job_name}} failed to complete. Removing
+          failed job after investigation should clear this alert.
+        summary: Job failed to complete.
+      expr: |-
+        kube_job_failed{job="kube-state-metrics", namespace=~".*"}  > 0
+      for: 15m
+      labels:
+        severity: warning
+        team: Team-B
